@@ -100,10 +100,24 @@ func Cmd(commandName string, params []string, callback func(msg []byte)) (*os.Pr
 
 	return cmd.ProcessState, err
 }
-func (head *Node) ToYaml() {
-	PrintToYaml(head, 0)
+func (n *Node) ToYaml() {
+	PrintToYaml(n, 0, nil)
 }
-func PrintToYaml(head *Node, i int) {
+func (n *Node) ToYamlFile(filePath ...string) error {
+	fp := n.Key + ".yaml"
+	if len(filePath) > 0 {
+		fp = filePath[0]
+	}
+	file, err := os.OpenFile(fp, os.O_CREATE|os.O_RDWR, 0666)
+	defer file.Close()
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	PrintToYaml(n, 0, file)
+	return nil
+}
+func PrintToYaml(head *Node, i int, file *os.File) {
 	sj := strings.Repeat("  ", i)
 	arrayLeading := ""
 	arrayLeader := true
@@ -128,19 +142,35 @@ func PrintToYaml(head *Node, i int) {
 		if strings.Contains(v.Type, "Object") || strings.Contains(v.Type, "map[string]") || strings.Contains(v.Type, "[]string") {
 			placeholder = ""
 		}
-		fmt.Printf("%s%s%s: %s\t#%s\t%v\n", sj, arrayLeading, keys[len(keys)-1], placeholder, v.Type, v.Required) //空格缩进，数组前导符，打印key，值占位符，类型，是否必须
+		row := fmt.Sprintf("%s%s%s: %s\t#%s\t%v\n", sj, arrayLeading, keys[len(keys)-1], placeholder, v.Type, v.Required) //空格缩进，数组前导符，打印key，值占位符，类型，是否必须
+		if file != nil {
+			file.WriteString(row)
+		}
+		fmt.Printf("%s", row)
 		if strings.Contains(v.Type, "map[string]") {
-			fmt.Printf("%s  %s: %s\n", sj, "placeholder", "placeholder")
+			row = fmt.Sprintf("%s    %s: %s\n", sj, "placeholder", "placeholder")
+			if file != nil {
+				file.WriteString(row)
+			}
+			fmt.Printf("%s", row)
 		}
 		if strings.Contains(v.Type, "[]string") {
-			fmt.Printf("%s  - %s\n", sj, "placeholder")
+			row = fmt.Sprintf("%s    - %s\n", sj, "placeholder")
+			if file != nil {
+				file.WriteString(row)
+			}
+			fmt.Printf("%s", row)
 		}
 		for _, vv := range v.Annotation {
-			fmt.Printf("%s\t#%s\n", sj, vv)
+			row = fmt.Sprintf("%s\t#%s\n", sj, vv)
+			if file != nil {
+				file.WriteString(row)
+			}
+			fmt.Printf("%s", row)
 		}
 
 		if len(v.Children) > 0 {
-			PrintToYaml(v, i+2)
+			PrintToYaml(v, i+2, file)
 		}
 	}
 }

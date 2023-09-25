@@ -1,5 +1,5 @@
 # k8s_resource
-闲来无事，把k8s资源文件捞一下，看看完整的资源文件是怎么样的
+把k8s资源文件捞一下，看看完整的资源文件是怎么样的
 
 还是顺手推荐一下好用的库，https://github.com/kubernetes/apimachinery ，对应的声明 https://github.com/kubernetes/apimachinery/blob/master/pkg/apis/meta/v1/types.go
 ## 1. 前提
@@ -9,7 +9,11 @@
 ```
     go get github.com/agclqq/k8s_resource
 ```
-```
+``` 
+    //如果你想保存文件，可以使用
+    //Explain("pod").ToYamlFile()
+    //或Explain("pod").ToYamlFile("pod.yaml")
+    
     Explain("job").ToYaml() // 生成job资源文件
     Explain("cronjob").ToYaml() // 生成cronjob资源文件
     Explain("deployment").ToYaml() // 生成deployment资源文件
@@ -67,3 +71,4 @@
     Explain("replicaset").ToYaml() // 生成replicaset资源文件
     Explain("replicationcontroller").ToYaml() // 生成replicationcontroller资源文件
 ```
+**注意：** 生的yaml内容中，必须要写一些值的地方，均使用placeholder或0占位符，需要自己替换
